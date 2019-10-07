@@ -16,6 +16,7 @@ using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
 using System.Management.Automation.Security;
 using System.Reflection;
+using System.Diagnostics;
 using System.Text;
 using System.Xml;
 
@@ -37,6 +38,7 @@ namespace Microsoft.PowerShell.Commands
     /// </summary>
     public class ModuleCmdletBase : PSCmdlet
     {
+        internal static Process WindowsPowerShellCompatProcess = null;
         /// <summary>
         /// Flags defining how a module manifest should be processed.
         /// </summary>
@@ -2347,43 +2349,92 @@ namespace Microsoft.PowerShell.Commands
             bool isConsideredCompatible = ModuleUtils.IsPSEditionCompatible(moduleManifestPath, inferredCompatiblePSEditions);
             if (!BaseSkipEditionCheck && !isConsideredCompatible)
             {
-                containedErrors = true;
-
-                if (writingErrors)
+                //if (writingErrors) ... 
+                //if (bailOnFirstError) ...
+                // If we're trying to load the module ...
+                if (importingModule)
                 {
-                    message = StringUtil.Format(
-                        Modules.PSEditionNotSupported,
-                        moduleManifestPath,
-                        PSVersionInfo.PSEdition,
-                        string.Join(',', inferredCompatiblePSEditions));
 
-                    InvalidOperationException ioe = new InvalidOperationException(message);
-
-                    ErrorRecord er = new ErrorRecord(
-                        ioe,
-                        nameof(Modules) + "_" + nameof(Modules.PSEditionNotSupported),
-                        ErrorCategory.ResourceUnavailable,
-                        moduleManifestPath);
-
-                    WriteError(er);
-                }
-
-                if (bailOnFirstError)
-                {
-                    // If we're trying to load the module, return null so that caches
-                    // are not polluted
-                    if (importingModule)
+                    if (WindowsPowerShellCompatProcess == null)
                     {
-                        return null;
+                        string filePath = System.Environment.ExpandEnvironmentVariables(@"%windir%\System32\WindowsPowerShell\v1.0\powershell.exe");
+                        System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo(filePath, "-NoLogo -NoProfile");
+            
+                        startInfo.WorkingDirectory = System.IO.Path.GetDirectoryName(filePath);
+                        startInfo.CreateNoWindow = true;
+                        startInfo.UseShellExecute = false;
+
+                        WindowsPowerShellCompatProcess = Process.Start(startInfo);
+
+
+                        var commandInfo = new CmdletInfo("New-PSSession", typeof(NewPSSessionCommand));
+                        var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace)
+                            .AddCommand(commandInfo)
+                            .AddParameter("ProcessId", WindowsPowerShellCompatProcess.Id);
+
+                        var results = ps.Invoke<PSSession>();
+                        PSSession compatPSSession = null;
+                        if (results.Count > 0)
+                        {
+                            compatPSSession = results[0];
+                        }
+                        
+
+                        // Invoke-Command -Session $s -Command {Import-Module DesktopOnlyModule}
+                        commandInfo = new CmdletInfo("Invoke-Command", typeof(InvokeCommandCommand)); 
+                        ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace)
+                            .AddCommand(commandInfo)
+                            .AddParameter("Session", compatPSSession)
+                            .AddParameter("ScriptBlock", ScriptBlock.Create("Import-Module " + moduleManifestPath));
+
+                        var r = ps.Invoke<Object>();
+                        Object o = null;
+                        if (r.Count > 0)
+                        {
+                            o = r[0];
+                        }
+                        
+                        // Import-PSSession -Session $s -AllowClobber -Module DesktopOnlyModule
+                        string moduleName = ModuleIntrinsics.GetModuleName(moduleManifestPath);
+                        ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace)
+                            .AddCommand("Import-PSSession")
+                            .AddParameter("Session", compatPSSession)
+                            .AddParameter("AllowClobber", true)
+                            .AddParameter("Module", moduleName)
+                            .AddParameter("OutputModule", moduleName);
+
+                        var proxyModuleInfoList = ps.Invoke<PSModuleInfo>();
+                        PSModuleInfo proxyModuleInfo = null;
+                        if (proxyModuleInfoList.Count > 0)
+                        {
+                            proxyModuleInfo = proxyModuleInfoList[0];
+
+
+                             string cleanUpScriptTemplate = @"if ($null -ne $oldOnRemoveScript)
+                                                        {{
+                                                            & $oldOnRemoveScript $args
+                                                        }}
+                                                        Remove-PSSession -Name {0}
+                                                        Stop-Process -Id {1} -Force
+                            ";
+
+                            string cleanUpScript = string.Format(cleanUpScriptTemplate, compatPSSession.Name, WindowsPowerShellCompatProcess.Id);
+                            ScriptBlock newScript = this.Context.Engine.ParseScriptBlock(cleanUpScript, false);
+                            newScript = newScript.GetNewClosure(); // create a separate scope for variables set below
+                            newScript.Module.SessionState.PSVariable.Set("oldOnRemoveScript", proxyModuleInfo.OnRemove);
+                            proxyModuleInfo.OnRemove = newScript;
+                        }
+
+
+                        var sb = ScriptBlock.Create(string.Format("Remove-PSSession -Name {0};Stop-Process -Id {1} -Force",
+                            compatPSSession.Name,
+                            WindowsPowerShellCompatProcess.Id));
+                        Events.SubscribeEvent(null, null,
+                            PSEngineEvent.Exiting, null, sb, false, false);
+
                     }
 
-                    // If we return null with Get-Module, a fake module info will be created. Since
-                    // we want to suppress output of the module, we need to do that here.
-                    return new PSModuleInfo(moduleManifestPath, context: null, sessionState: null)
-                    {
-                        HadErrorsLoading = true,
-                        IsConsideredEditionCompatible = false,
-                    };
+                    return null;
                 }
             }
 

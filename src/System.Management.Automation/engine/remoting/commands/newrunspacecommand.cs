@@ -162,6 +162,22 @@ namespace Microsoft.PowerShell.Commands
                    ParameterSetName = NewPSSessionCommand.VMNameParameterSet)]
         public string ConfigurationName { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        [Parameter(ValueFromPipelineByPropertyName = true,
+                   Mandatory = true,
+                   ParameterSetName = NewPSSessionCommand.ProcessIdParameterSet)]
+        public int[] ProcessId { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Parameter(ValueFromPipelineByPropertyName = true,
+                   Mandatory = false,
+                   ParameterSetName = NewPSSessionCommand.ProcessIdParameterSet)]
+        public string AppDomainName { get; set; }
+
         #endregion Parameters
 
         #region Cmdlet Overrides
@@ -253,6 +269,13 @@ namespace Microsoft.PowerShell.Commands
                 case NewPSSessionCommand.SSHHostHashParameterSet:
                     {
                         remoteRunspaces = CreateRunspacesForSSHHostHashParameterSet();
+                    }
+
+                    break;
+
+                case NewPSSessionCommand.ProcessIdParameterSet:
+                    {
+                        remoteRunspaces = CreateRunspacesForProcessIdParameterSet();
                     }
 
                     break;
@@ -1127,6 +1150,30 @@ namespace Microsoft.PowerShell.Commands
                 string rsName = GetRunspaceName(index, out int rsIdUnused);
                 index++;
                 remoteRunspaces.Add(RunspaceFactory.CreateRunspace(connectionInfo: sshConnectionInfo,
+                                                                   host: this.Host,
+                                                                   typeTable: typeTable,
+                                                                   applicationArguments: null,
+                                                                   name: rsName) as RemoteRunspace);
+            }
+
+            return remoteRunspaces;
+        }
+
+        /// <summary>
+        /// CreateRunspacesForProcessIdParameterSet.
+        /// </summary>
+        /// <returns></returns>
+        private List<RemoteRunspace> CreateRunspacesForProcessIdParameterSet()
+        {
+            var remoteRunspaces = new List<RemoteRunspace>();
+            int index = 0;
+            foreach (var pid in ProcessId)
+            {
+                var connectionInfo = new NamedPipeConnectionInfo(pid, AppDomainName);
+                var typeTable = TypeTable.LoadDefaultTypeFiles();
+                string rsName = GetRunspaceName(index, out int rsIdUnused);
+                index++;
+                remoteRunspaces.Add(RunspaceFactory.CreateRunspace(connectionInfo: connectionInfo,
                                                                    host: this.Host,
                                                                    typeTable: typeTable,
                                                                    applicationArguments: null,

@@ -264,6 +264,13 @@ namespace Microsoft.PowerShell.Commands
 
         private bool _disableNameChecking;
 
+        /// <summary>
+        /// Optional name of the proxy module
+        /// </summary>
+        [Parameter]
+        [ValidateNotNullOrEmpty]
+        public string OutputModule { get; set; }
+
         #endregion
 
         /// <summary>
@@ -280,15 +287,29 @@ namespace Microsoft.PowerShell.Commands
                 ThrowTerminatingError(error);
             }
 
-            DirectoryInfo moduleDirectory = PathUtils.CreateTemporaryDirectory();
-
             Dictionary<string, string> alias2resolvedCommandName;
             List<CommandMetadata> listOfCommandMetadata = this.GetRemoteCommandMetadata(out alias2resolvedCommandName);
             List<ExtendedTypeDefinition> listOfFormatData = this.GetRemoteFormatData();
 
+            DirectoryInfo moduleRootDirectory = PathUtils.CreateTemporaryDirectory();
+            string moduleNamePrefix = Path.GetFileName(moduleRootDirectory.FullName);
+            if (!string.IsNullOrEmpty(this.OutputModule))
+            {
+                moduleRootDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), this.OutputModule));
+                moduleNamePrefix = Path.GetFileName(moduleRootDirectory.FullName);
+                
+                // overwrite if moduleRootDirectory already exists
+                if (Directory.Exists(moduleRootDirectory.FullName))
+                {
+                    Directory.Delete(moduleRootDirectory.FullName, true); // if this throws - it should be terminating
+                }
+
+                moduleRootDirectory = Directory.CreateDirectory(moduleRootDirectory.FullName);
+            }
+
             List<string> generatedFiles = this.GenerateProxyModule(
-                moduleDirectory,
-                Path.GetFileName(moduleDirectory.FullName),
+                moduleRootDirectory,
+                moduleNamePrefix,
                 Encoding.Unicode,
                 false,
                 listOfCommandMetadata,
