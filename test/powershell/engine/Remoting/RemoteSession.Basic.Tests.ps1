@@ -146,6 +146,7 @@ Describe "Remoting loopback tests" -Tags @('CI', 'RequireAdminOnWindows') {
             Write-Verbose -Verbose 'Doing Enable-PSRemoting -SkipNetworkProfileCheck'
             Enable-PSRemoting -SkipNetworkProfileCheck
             Write-Verbose -Verbose 'Completed Enable-PSRemoting -SkipNetworkProfileCheck'
+            Write-Error "Test Error for CI output"
             $endPoint = (Get-PSSessionConfiguration -Name "PowerShell.$(${PSVersionTable}.GitCommitId)").Name
             Write-Verbose -Verbose $('$endPoint = ' + $endPoint)
             $disconnectedSession = New-RemoteSession -ConfigurationName $endPoint -ComputerName localhost | Disconnect-PSSession
