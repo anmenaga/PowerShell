@@ -4037,6 +4037,7 @@ function Test-WinRMQuickConfigNeeded
     else{{
         if (Get-Command Get-NetFirewallRule -ErrorAction SilentlyContinue){{
             $winrmFirewall = Get-NetFirewallRule -Name 'WINRM-HTTP-In-TCP' -ErrorAction SilentlyContinue
+            Write-Verbose -Verbose $('winrmFirewall.Enabled = '+$winrmFirewall.Enabled)
             if (!$winrmFirewall -or $winrmFirewall.Enabled -ne $true){{
                 $winrmQuickConfigNeeded = $true
             }}
@@ -4045,7 +4046,7 @@ function Test-WinRMQuickConfigNeeded
             $winrmQuickConfigNeeded = $true
         }}
     }}
-
+    Write-Verbose -Verbose $('winrmQuickConfigNeeded = '+$winrmQuickConfigNeeded)
     $winrmQuickConfigNeeded
 }}
 
