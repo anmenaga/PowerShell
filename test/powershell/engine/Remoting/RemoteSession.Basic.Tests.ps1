@@ -143,6 +143,7 @@ Describe "Remoting loopback tests" -Tags @('CI', 'RequireAdminOnWindows') {
         }
         else
         {
+            Write-Verbose -Verbose -Message "EA = $ErrorActionPreference"
             Write-Verbose -Verbose 'Doing Enable-PSRemoting -SkipNetworkProfileCheck'
             Enable-PSRemoting -SkipNetworkProfileCheck
             Write-Verbose -Verbose 'Completed Enable-PSRemoting -SkipNetworkProfileCheck'
