@@ -4047,9 +4047,9 @@ function Test-WinRMQuickConfigNeeded
         }}
     }}
     Write-Verbose -Verbose $('winrmQuickConfigNeeded = '+$winrmQuickConfigNeeded)
-    Write-Verbose -Verbose $('Setting winrmQuickConfigNeeded = True')
-    $winrmQuickConfigNeeded = $True
-    Write-Verbose -Verbose $('winrmQuickConfigNeeded = '+$winrmQuickConfigNeeded)
+    # Write-Verbose -Verbose $('Setting winrmQuickConfigNeeded = True')
+    # $winrmQuickConfigNeeded = $True
+    # Write-Verbose -Verbose $('winrmQuickConfigNeeded = '+$winrmQuickConfigNeeded)
     $winrmQuickConfigNeeded
 }}
 

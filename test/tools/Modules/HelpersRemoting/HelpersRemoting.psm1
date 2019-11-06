@@ -163,7 +163,7 @@ function CreateParameters
     {
         Write-Verbose "Using Implicit Credential" -Verbose
     }
-
+    $parameters["Verbose"] = $true
     return $parameters
 }
 
@@ -181,8 +181,11 @@ function New-RemoteSession
     {
         $ConfigurationName = Get-DefaultEndPointName
     }
+    Write-Verbose -Verbose "New-RemoteSession:ConfigurationName: $ConfigurationName"
 
     $parameters = CreateParameters -Name $Name -ConfigurationName $ConfigurationName -SessionOption $SessionOption -CimSession:$CimSession.IsPresent
+    Write-Verbose -Verbose "New-RemoteSession:parameters: $parameters"
+    Write-Verbose -Verbose "New-RemoteSession:CimSession: $CimSession"
 
     if ($CimSession) {
         $session = New-CimSession @parameters
@@ -190,7 +193,7 @@ function New-RemoteSession
         $session = New-PSSession @parameters
     }
 
-    Write-Verbose "Successfully created remote PSSession on endpoint: $ConfigurationName"
+    Write-Verbose -Verbose "Successfully created remote PSSession on endpoint: $ConfigurationName"
 
     return $session
 }
