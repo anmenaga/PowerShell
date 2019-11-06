@@ -189,6 +189,7 @@ function New-RemoteSession
     Write-Verbose -Verbose "New-RemoteSession:Start-ErrorTest"
     $parameters_copy = $parameters.Clone()
     $parameters_copy['ComputerName'] = 'non-existing-ComputerName'
+    Write-Verbose -Verbose $("New-RemoteSession:parameters_copy: " + $($parameters_copy | Out-String))
     $session = New-PSSession @parameters_copy
     Write-Verbose -Verbose "New-RemoteSession:End-ErrorTest"
 
