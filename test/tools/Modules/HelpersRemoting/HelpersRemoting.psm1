@@ -184,13 +184,21 @@ function New-RemoteSession
     Write-Verbose -Verbose "New-RemoteSession:ConfigurationName: $ConfigurationName"
 
     $parameters = CreateParameters -Name $Name -ConfigurationName $ConfigurationName -SessionOption $SessionOption -CimSession:$CimSession.IsPresent
-    Write-Verbose -Verbose "New-RemoteSession:parameters: $parameters"
+    Write-Verbose -Verbose $("New-RemoteSession:parameters: " + $($parameters | Out-String))
     Write-Verbose -Verbose "New-RemoteSession:CimSession: $CimSession"
 
     if ($CimSession) {
         $session = New-CimSession @parameters
     } else {
         $session = New-PSSession @parameters
+    }
+
+    if ($session)
+    {
+        Write-Verbose -Verbose "New-RemoteSession: session $($session.name) is NOT null"
+    }
+    else {
+        Write-Verbose -Verbose "New-RemoteSession: session IS null"
     }
 
     Write-Verbose -Verbose "Successfully created remote PSSession on endpoint: $ConfigurationName"
