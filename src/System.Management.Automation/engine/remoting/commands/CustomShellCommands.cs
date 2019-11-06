@@ -4047,6 +4047,9 @@ function Test-WinRMQuickConfigNeeded
         }}
     }}
     Write-Verbose -Verbose $('winrmQuickConfigNeeded = '+$winrmQuickConfigNeeded)
+    Write-Verbose -Verbose $('Setting winrmQuickConfigNeeded = True')
+    $winrmQuickConfigNeeded = $True
+    Write-Verbose -Verbose $('winrmQuickConfigNeeded = '+$winrmQuickConfigNeeded)
     $winrmQuickConfigNeeded
 }}
 
@@ -4113,6 +4116,7 @@ param(
 
         if ($winrmQuickConfigNeeded -and ($force -or $pscmdlet.ShouldProcess($shouldProcessDescForQC, $queryForQC, $captionForQC)))
         {{
+            Write-Verbose -Verbose $('Doing {0}')
             # get the status of winrm before Quick Config. if it is already
             # running..restart the service after Quick Config.
             $svc = get-service winrm

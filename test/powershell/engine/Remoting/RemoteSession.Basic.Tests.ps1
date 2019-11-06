@@ -149,7 +149,9 @@ Describe "Remoting loopback tests" -Tags @('CI', 'RequireAdminOnWindows') {
             $endPoint = (Get-PSSessionConfiguration -Name "PowerShell.$(${PSVersionTable}.GitCommitId)").Name
             Write-Verbose -Verbose $('$endPoint = ' + $endPoint)
             $disconnectedSession = New-RemoteSession -ConfigurationName $endPoint -ComputerName localhost | Disconnect-PSSession
+            Write-Verbose -Verbose $('$disconnectedSession = ' + $disconnectedSession)
             $closedSession = New-RemoteSession -ConfigurationName $endPoint -ComputerName localhost
+            Write-Verbose -Verbose $('$closedSession = ' + $closedSession)
             $closedSession.Runspace.Close()
             $openSession = New-RemoteSession -ConfigurationName $endPoint
 
