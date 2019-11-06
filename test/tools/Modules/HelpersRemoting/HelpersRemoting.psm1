@@ -164,6 +164,7 @@ function CreateParameters
         Write-Verbose "Using Implicit Credential" -Verbose
     }
     $parameters["Verbose"] = $true
+    $parameters["ErrorAction"] = 'Stop'
     $parameters["ErrorVariable"] = "g"
     return $parameters
 }
