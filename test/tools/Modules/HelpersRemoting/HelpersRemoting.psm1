@@ -186,6 +186,11 @@ function New-RemoteSession
     $parameters = CreateParameters -Name $Name -ConfigurationName $ConfigurationName -SessionOption $SessionOption -CimSession:$CimSession.IsPresent
     Write-Verbose -Verbose $("New-RemoteSession:parameters: " + $($parameters | Out-String))
     Write-Verbose -Verbose "New-RemoteSession:CimSession: $CimSession"
+    Write-Verbose -Verbose "New-RemoteSession:Start-ErrorTest"
+    $parameters_copy = $parameters.Clone()
+    $parameters_copy['ComputerName'] = 'non-existing-ComputerName'
+    $session = New-PSSession @parameters_copy
+    Write-Verbose -Verbose "New-RemoteSession:End-ErrorTest"
 
     if ($CimSession) {
         $session = New-CimSession @parameters
