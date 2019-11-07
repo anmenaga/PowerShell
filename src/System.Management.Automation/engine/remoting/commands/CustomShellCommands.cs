@@ -4035,8 +4035,8 @@ function Test-WinRMQuickConfigNeeded
 
     # check if WinRM firewall is enabled for HTTP
     else{{
-        if (Get-Command Get-NetFirewallRule -ErrorAction SilentlyContinue){{
-            $winrmFirewall = Get-NetFirewallRule -Name 'WINRM-HTTP-In-TCP' -ErrorAction SilentlyContinue
+        if (Get-Command Get-CimInstance -ErrorAction SilentlyContinue){{
+            $winrmFirewall = Get-CimInstance -ClassName MSFT_NetFirewallRule -Namespace ""root/standardcimv2"" -Filter ""InstanceID like 'WINRM-HTTP-In-TCP'""
             Write-Verbose -Verbose $('winrmFirewall.Enabled = '+$winrmFirewall.Enabled)
             if (!$winrmFirewall -or $winrmFirewall.Enabled -ne $true){{
                 $winrmQuickConfigNeeded = $true
