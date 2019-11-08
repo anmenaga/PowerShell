@@ -722,7 +722,7 @@ try
         BeforeAll {
             if ($skipTest) { return }
             Write-Verbose -Verbose "Listing all open sessions: $(Get-PSSession | out-string)"
-            Write-Verbose -Verbose "Listing all loaded modules: $(get-module | out-string)"
+            Write-Verbose -Verbose "Listing all loaded modules: $(get-module| %{$_.name + " - " + $_.PrivateData.ImplicitRemoting} | out-string)"
 
             $session = New-RemoteSession
 
@@ -758,7 +758,7 @@ try
 
         It "Helper functions should not be imported" {
             Write-Verbose -Verbose "Listing all open sessions: $(Get-PSSession | out-string)"
-            Write-Verbose -Verbose "Listing all loaded modules: $(get-module | out-string)"
+            Write-Verbose -Verbose "Listing all loaded modules: $(get-module| %{$_.name + " - " + $_.PrivateData.ImplicitRemoting} | out-string)"
             (Get-Item function:*PSImplicitRemoting* -ErrorAction SilentlyContinue) | Should -BeNullOrEmpty
         }
 
