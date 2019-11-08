@@ -762,7 +762,7 @@ try
             Write-Verbose -Verbose "Listing all open sessions: $(Get-PSSession | out-string)"
             Write-Verbose -Verbose "Listing all loaded modules: $(get-module| %{$_.name + " - " + $_.PrivateData.ImplicitRemoting} | out-string)"
             Write-Verbose -Verbose "Listing all exported commands: $($m=get-module| ?{$_.PrivateData.ImplicitRemoting};$m|%{$_.name + " - " + $($_.ExportedCommands|out-string)})"
-            (Get-Item function:*PSImplicitRemoting* -ErrorAction SilentlyContinue) | Should -BeNullOrEmpty
+            Get-Item function:*PSImplicitRemoting* -ErrorAction SilentlyContinue | ? {$_.ModuleName -eq $module.Name} | Should -BeNullOrEmpty
         }
 
         It "Calls implicit remoting proxies 'MyFunction'" {
@@ -821,7 +821,7 @@ try
             }
 
             It "Private functions from the implicit remoting module shouldn't get imported into global scope" {
-                @(Get-ChildItem function:*Implicit* -ErrorAction SilentlyContinue).Count | Should -Be 0
+                @(Get-ChildItem function:*Implicit* -ErrorAction SilentlyContinue | ? {$_.ModuleName -eq $module.Name}).Count | Should -Be 0
             }
         }
     }
@@ -1878,7 +1878,7 @@ try
             $oldNumberOfHandlers | Should -Be $newNumberOfHandlers
 
             ## Private functions from the implicit remoting module shouldn't get imported into global scope
-            @(Get-ChildItem function:*Implicit* -ErrorAction SilentlyContinue).Count | Should -Be 0
+            @(Get-ChildItem function:*Implicit* -ErrorAction SilentlyContinue | ? {$_.ModuleName -eq $module.Name}).Count | Should -Be 0
         }
     }
 
