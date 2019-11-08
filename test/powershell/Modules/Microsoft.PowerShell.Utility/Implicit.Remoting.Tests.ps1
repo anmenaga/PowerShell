@@ -723,7 +723,7 @@ try
             if ($skipTest) { return }
             Write-Verbose -Verbose "Listing all open sessions: $(Get-PSSession | out-string)"
             Write-Verbose -Verbose "Listing all loaded modules: $(get-module| %{$_.name + " - " + $_.PrivateData.ImplicitRemoting} | out-string)"
-            Write-Verbose -Verbose "Listing all exported commands: $($m=get-module| ?{$_.PrivateData.ImplicitRemoting};$m.name;$m.ExportedCommands)"
+            Write-Verbose -Verbose "Listing all exported commands: $($m=get-module| ?{$_.PrivateData.ImplicitRemoting};$m|%{$_.name + " - " + $($_.ExportedCommands|out-string)})"
 
 
             $session = New-RemoteSession
@@ -761,7 +761,7 @@ try
         It "Helper functions should not be imported" {
             Write-Verbose -Verbose "Listing all open sessions: $(Get-PSSession | out-string)"
             Write-Verbose -Verbose "Listing all loaded modules: $(get-module| %{$_.name + " - " + $_.PrivateData.ImplicitRemoting} | out-string)"
-            Write-Verbose -Verbose "Listing all exported commands: $($m=get-module| ?{$_.PrivateData.ImplicitRemoting};$m.name;$m.ExportedCommands)"
+            Write-Verbose -Verbose "Listing all exported commands: $($m=get-module| ?{$_.PrivateData.ImplicitRemoting};$m|%{$_.name + " - " + $($_.ExportedCommands|out-string)})"
             (Get-Item function:*PSImplicitRemoting* -ErrorAction SilentlyContinue) | Should -BeNullOrEmpty
         }
 
