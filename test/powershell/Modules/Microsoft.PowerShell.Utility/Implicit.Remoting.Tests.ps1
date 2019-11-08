@@ -717,7 +717,7 @@ try
         }
     }
 
-    Describe "Import-PSSession functional tests" -tags "DebugRun","Feature","RequireAdminOnWindows" {
+    Describe "Import-PSSession functional tests" -tags "Feature","RequireAdminOnWindows" {
 
         BeforeAll {
             if ($skipTest) { return }
