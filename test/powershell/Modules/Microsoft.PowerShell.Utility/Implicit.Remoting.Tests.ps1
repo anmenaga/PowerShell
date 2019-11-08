@@ -717,10 +717,12 @@ try
         }
     }
 
-    Describe "Import-PSSession functional tests" -tags "Feature","RequireAdminOnWindows" {
+    Describe "Import-PSSession functional tests" -tags "DebugRun","Feature","RequireAdminOnWindows" {
 
         BeforeAll {
             if ($skipTest) { return }
+            Write-Verbose -Verbose "Listing all open sessions: $(Get-PSSession | out-string)"
+
             $session = New-RemoteSession
 
             # Define a remote function
@@ -754,6 +756,7 @@ try
         }
 
         It "Helper functions should not be imported" {
+            Write-Verbose -Verbose "Listing all open sessions: $(Get-PSSession | out-string)"
             (Get-Item function:*PSImplicitRemoting* -ErrorAction SilentlyContinue) | Should -BeNullOrEmpty
         }
 

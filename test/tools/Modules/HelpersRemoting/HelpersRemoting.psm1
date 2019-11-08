@@ -164,6 +164,8 @@ function CreateParameters
         Write-Verbose "Using Implicit Credential" -Verbose
     }
 
+    Write-Verbose -Verbose $($parameters | out-string)
+
     return $parameters
 }
 
