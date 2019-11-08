@@ -7,6 +7,8 @@ $originalWarningPreference = $WarningPreference
 $WarningPreference = "SilentlyContinue"
 $skipTest = ! ($IsWindows -and $IsCoreCLR -and (Test-IsElevated))
 $PSDefaultParameterValues["it:skip"] = $skipTest
+# make current session cleaner - this makes tests more stable
+Get-Module| ?{$_.PrivateData.ImplicitRemoting} | Remove-Module -ErrorAction SilentlyContinue
 
 try
 {
@@ -1878,7 +1880,7 @@ try
             $oldNumberOfHandlers | Should -Be $newNumberOfHandlers
 
             ## Private functions from the implicit remoting module shouldn't get imported into global scope
-            @(Get-ChildItem function:*Implicit* -ErrorAction SilentlyContinue | ? {$_.ModuleName -eq $module.Name}).Count | Should -Be 0
+            @(Get-ChildItem function:*Implicit* -ErrorAction SilentlyContinue).Count | Should -Be 0
         }
     }
 
