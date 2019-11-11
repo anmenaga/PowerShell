@@ -15,6 +15,11 @@ Describe 'Online help tests for PowerShell Cmdlets' -Tags "CI" {
         # 1) get-help will not find a help file; instead, it will generate a metadata driven object.
         # 2) get-help -online <cmdletName>  will return the helpuri instead of opening the default web browser.
         [system.management.automation.internal.internaltesthooks]::SetTestHook('BypassOnlineHelpRetrieval', $true)
+
+        Write-Verbose -Verbose "Listing all open sessions: $(Get-PSSession | out-string)"
+        Write-Verbose -Verbose "Listing all loaded modules: $(get-module| %{$_.name + " - " + $_.PrivateData.ImplicitRemoting} | out-string)"
+        Write-Verbose -Verbose "Listing all exported commands: $($m=get-module| ?{$_.PrivateData.ImplicitRemoting};$m|%{$_.name + " - " + $($_.ExportedCommands|out-string)})"
+
     }
 
     AfterAll {
