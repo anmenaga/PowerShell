@@ -36,7 +36,13 @@ Describe 'Online help tests for PowerShell Cmdlets' -Tags "CI" {
         foreach ($cmdlet in $cmdletList)
         {
             # If the cmdlet is not preset in CoreCLR, skip it.
-            $skipTest = $null -eq (Get-Command $cmdlet.TopicTitle -ErrorAction SilentlyContinue)
+            $command = Get-Command $cmdlet.TopicTitle -ErrorAction SilentlyContinue
+            $skipTest = $null -eq ($command)
+            if ($command.Module.PrivateData.ImplicitRemoting)
+            {
+                $skipTest = $true
+                Remove-Module $command.Module
+            }
 
             # TopicTitle - is the cmdlet name in the csv file
             # HelpURI - is the expected help URI in the csv file
