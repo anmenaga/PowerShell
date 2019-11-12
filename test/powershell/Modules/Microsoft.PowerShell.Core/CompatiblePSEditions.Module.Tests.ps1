@@ -248,8 +248,18 @@ Describe "Import-Module from CompatiblePSEditions-checked paths" -Tag "CI" {
 
         $allModules = ($successCases + $failCases).ModuleName
 
+Write-Verbose -Verbose "Listing all open sessions: $(Get-PSSession | out-string)"
+Write-Verbose -Verbose "Listing all loaded modules: $(get-module| %{$_.name + " - " + $_.PrivateData.ImplicitRemoting} | out-string)"
+Write-Verbose -Verbose "Listing all exported commands: $($m=get-module| ?{$_.PrivateData.ImplicitRemoting};$m|%{$_.name + " - " + $($_.ExportedCommands|out-string)})"
+
         # make sure WinCompat modules are not loaded
         Get-Module | foreach-object {if ($_.PrivateData.ImplicitRemoting) {Remove-Module $_}}
+
+        Write-Verbose -Verbose "******************************"
+
+Write-Verbose -Verbose "Listing all open sessions: $(Get-PSSession | out-string)"
+Write-Verbose -Verbose "Listing all loaded modules: $(get-module| %{$_.name + " - " + $_.PrivateData.ImplicitRemoting} | out-string)"
+Write-Verbose -Verbose "Listing all exported commands: $($m=get-module| ?{$_.PrivateData.ImplicitRemoting};$m|%{$_.name + " - " + $($_.ExportedCommands|out-string)})"
 
         # Emulate the System32 module path for tests
         [System.Management.Automation.Internal.InternalTestHooks]::SetTestHook("TestWindowsPowerShellPSHomeLocation", $basePath)
