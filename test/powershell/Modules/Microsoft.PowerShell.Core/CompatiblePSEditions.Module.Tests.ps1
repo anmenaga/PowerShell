@@ -248,6 +248,9 @@ Describe "Import-Module from CompatiblePSEditions-checked paths" -Tag "CI" {
 
         $allModules = ($successCases + $failCases).ModuleName
 
+        # make sure WinCompat modules are not loaded
+        Get-Module | foreach-object {if ($_.PrivateData.ImplicitRemoting) {Remove-Module $_}}
+
         # Emulate the System32 module path for tests
         [System.Management.Automation.Internal.InternalTestHooks]::SetTestHook("TestWindowsPowerShellPSHomeLocation", $basePath)
     }
