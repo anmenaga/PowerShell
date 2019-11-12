@@ -290,7 +290,7 @@ namespace Microsoft.PowerShell.Commands
         internal static int WindowsPowerShellCompatUsageCounter = 0;
 
         /// <summary>
-        /// User name for WindowsPS compat remoting session
+        /// Session name for WindowsPS compat remoting session
         /// </summary>
         internal const string WindowsPowerShellCompatRemotingSessionName = "WinPSCompatSession";
         
@@ -4842,6 +4842,7 @@ namespace Microsoft.PowerShell.Commands
                     if (results.Count > 0)
                     {
                         compatSession = results[0];
+                        System.Threading.Interlocked.Exchange(ref WindowsPowerShellCompatUsageCounter, 0);
                     }
                 }
             }
