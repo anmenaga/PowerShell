@@ -248,6 +248,10 @@ Describe "Import-Module from CompatiblePSEditions-checked paths" -Tag "CI" {
 
         $allModules = ($successCases + $failCases).ModuleName
 
+        # make sure there are no ImplicitRemoting leftovers from previous tests
+        Get-Module | Where-Object {$_.PrivateData.ImplicitRemoting} | Remove-Module -Force
+        Get-PSSession -Name WinPSCompatSession -ErrorAction SilentlyContinue | Remove-PSSession
+
         # Emulate the System32 module path for tests
         [System.Management.Automation.Internal.InternalTestHooks]::SetTestHook("TestWindowsPowerShellPSHomeLocation", $basePath)
     }
@@ -293,10 +297,6 @@ Describe "Import-Module from CompatiblePSEditions-checked paths" -Tag "CI" {
         It "Imports any module using WinCompat from the module path with -UseWindowsPowerShell with PSEdition <Editions>" -TestCases ($successCases + $failCases) -Skip:(-not $IsWindows) {
             param($Editions, $ModuleName, $Result)
 
-            Write-Verbose -Verbose "local  PSModulePath = $env:PSModulePath"
-            $s = nsn -UseWindowsPowerShell
-            $remoteModulePath = icm $s {$env:PSModulePath}
-            Write-Verbose -Verbose "remote PSModulePath = $remoteModulePath"
             Import-Module $ModuleName -UseWindowsPowerShell -Force
             & "Test-$($ModuleName)PSEdition" | Should -Be 'Desktop'
         }
