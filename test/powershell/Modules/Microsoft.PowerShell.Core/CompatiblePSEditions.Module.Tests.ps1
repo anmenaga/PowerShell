@@ -293,11 +293,15 @@ Describe "Import-Module from CompatiblePSEditions-checked paths" -Tag "CI" {
         It "Imports any module using WinCompat from the module path with -UseWindowsPowerShell with PSEdition <Editions>" -TestCases ($successCases + $failCases) -Skip:(-not $IsWindows) {
             param($Editions, $ModuleName, $Result)
 
+            Write-Verbose -Verbose "local  PSModulePath = $env:PSModulePath"
+            $s = nsn -UseWindowsPowerShell
+            $remoteModulePath = icm $s {$env:PSModulePath}
+            Write-Verbose -Verbose "remote PSModulePath = $remoteModulePath"
             Import-Module $ModuleName -UseWindowsPowerShell -Force
             & "Test-$($ModuleName)PSEdition" | Should -Be 'Desktop'
         }
     }
-
+<#
     Context "Imports from absolute path" {
         It "Successfully imports compatible modules from an absolute path with PSEdition <Editions>" -TestCases $successCases -Skip:(-not $IsWindows) {
             param($Editions, $ModuleName, $Result)
@@ -334,9 +338,9 @@ Describe "Import-Module from CompatiblePSEditions-checked paths" -Tag "CI" {
             Import-Module $path -UseWindowsPowerShell -Force
             & "Test-$($ModuleName)PSEdition" | Should -Be 'Desktop'
         }
-    }
+    }#>
 }
-
+<#
 Describe "PSModulePath changes interacting with other PowerShell processes" -Tag "Feature" {
     $PSDefaultParameterValues = @{ 'It:Skip' = (-not $IsWindows) }
 
@@ -959,3 +963,4 @@ Describe "Import-Module nested module behaviour with Edition checking" -Tag "Fea
         }
     }
 }
+#>
