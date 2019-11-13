@@ -339,6 +339,28 @@ Describe "Import-Module from CompatiblePSEditions-checked paths" -Tag "CI" {
             & "Test-$($ModuleName)PSEdition" | Should -Be 'Desktop'
         }
     }
+
+    Context "Imports using CommandDiscovery\ModuleAutoload" {
+        BeforeAll {
+            Add-ModulePath $basePath
+        }
+
+        AfterAll {
+            Restore-ModulePath
+        }
+
+        It "Successfully auto-imports compatible modules from the module path with PSEdition <Editions>" -TestCases $successCases -Skip:(-not $IsWindows) {
+            param($Editions, $ModuleName, $Result)
+
+            & "Test-$ModuleName" | Should -Be $Result
+        }
+
+        It "Successfully auto-imports incompatible modules from the module path with PSEdition <Editions> using WinCompat" -TestCases $failCases -Skip:(-not $IsWindows) {
+            param($Editions, $ModuleName, $Result)
+
+            & "Test-$($ModuleName)PSEdition" | Should -Be 'Desktop'
+        }
+    }
 }
 
 Describe "PSModulePath changes interacting with other PowerShell processes" -Tag "Feature" {
