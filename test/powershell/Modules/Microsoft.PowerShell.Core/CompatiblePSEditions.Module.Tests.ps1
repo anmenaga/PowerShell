@@ -301,7 +301,7 @@ Describe "Import-Module from CompatiblePSEditions-checked paths" -Tag "CI" {
             & "Test-$($ModuleName)PSEdition" | Should -Be 'Desktop'
         }
     }
-<#
+
     Context "Imports from absolute path" {
         It "Successfully imports compatible modules from an absolute path with PSEdition <Editions>" -TestCases $successCases -Skip:(-not $IsWindows) {
             param($Editions, $ModuleName, $Result)
@@ -338,9 +338,9 @@ Describe "Import-Module from CompatiblePSEditions-checked paths" -Tag "CI" {
             Import-Module $path -UseWindowsPowerShell -Force
             & "Test-$($ModuleName)PSEdition" | Should -Be 'Desktop'
         }
-    }#>
+    }
 }
-<#
+
 Describe "PSModulePath changes interacting with other PowerShell processes" -Tag "Feature" {
     $PSDefaultParameterValues = @{ 'It:Skip' = (-not $IsWindows) }
 
@@ -729,6 +729,10 @@ Describe "Import-Module nested module behaviour with Edition checking" -Tag "Fea
         {
             New-Item -Path $basePath -ItemType Directory
         }
+
+        # make sure there are no ImplicitRemoting leftovers from previous tests
+        Get-Module | Where-Object {$_.PrivateData.ImplicitRemoting} | Remove-Module -Force
+        Get-PSSession -Name WinPSCompatSession -ErrorAction SilentlyContinue | Remove-PSSession
     }
 
     Context "Modules ON the System32 test path" {
@@ -963,4 +967,3 @@ Describe "Import-Module nested module behaviour with Edition checking" -Tag "Fea
         }
     }
 }
-#>
