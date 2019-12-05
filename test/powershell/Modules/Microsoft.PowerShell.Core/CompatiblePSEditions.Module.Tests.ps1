@@ -384,41 +384,25 @@ Describe "Additional tests for Import-Module with WinCompat" -Tag "CI" {
         It "Verify that Error is generated with default ErrorAction" -Skip:(-not $IsWindows) {
             $LogPath = Join-Path $TestDrive (New-Guid).ToString()
             pwsh -NoProfile -NonInteractive -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Import-Module $ModuleName" *> $LogPath
-
-            $Log = Get-Content $LogPath -Raw
-
-            Write-Verbose "Log = $($Log)" -Verbose
-            $Log | Should -BeLike "*divide by zero*"
+            $LogPath | Should -FileContentMatch 'divide by zero'
         }
 
         It "Verify that Warning is generated with default WarningAction" -Skip:(-not $IsWindows) {
             $LogPath = Join-Path $TestDrive (New-Guid).ToString()
             pwsh -NoProfile -NonInteractive -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Import-Module $ModuleName" *> $LogPath
-
-            $Log = Get-Content $LogPath -Raw
-
-            Write-Verbose "Log = $($Log)" -Verbose
-            $Log | Should -BeLike "*loaded in Windows PowerShell*"
+            $LogPath | Should -FileContentMatch 'loaded in Windows PowerShell'
         }
 
         It "Verify that Error is Not generated with -ErrorAction Ignore" -Skip:(-not $IsWindows) {
             $LogPath = Join-Path $TestDrive (New-Guid).ToString()
             pwsh -NoProfile -NonInteractive -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Import-Module $ModuleName -ErrorAction Ignore" *> $LogPath
-
-            $Log = Get-Content $LogPath -Raw
-
-            Write-Verbose "Log = $($Log)" -Verbose
-            $Log | Should -Not -BeLike "*divide by zero*"
+            $LogPath | Should -Not -FileContentMatch 'divide by zero'
         }
 
         It "Verify that Warning is Not generated with -WarningAction Ignore" -Skip:(-not $IsWindows) {
             $LogPath = Join-Path $TestDrive (New-Guid).ToString()
             pwsh -NoProfile -NonInteractive -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Import-Module $ModuleName -WarningAction Ignore" *> $LogPath
-
-            $Log = Get-Content $LogPath -Raw
-
-            Write-Verbose "Log = $($Log)" -Verbose
-            $Log | Should -Not -BeLike "*loaded in Windows PowerShell*"
+            $LogPath | Should -Not -FileContentMatch 'loaded in Windows PowerShell'
         }
     }
 }
