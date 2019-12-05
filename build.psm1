@@ -5,7 +5,7 @@
 # On Windows paths is separated by semicolon
 $script:TestModulePathSeparator = [System.IO.Path]::PathSeparator
 
-$dotnetCLIChannel = 'preview' # TODO: Change this to 'release' once .Net Core 3.0 goes RTM
+$dotnetCLIChannel = 'release'
 $dotnetCLIRequiredVersion = $(Get-Content $PSScriptRoot/global.json | ConvertFrom-Json).Sdk.Version
 
 # Track if tags have been sync'ed
@@ -206,6 +206,30 @@ function Test-IsPreview
     )
 
     return $Version -like '*-*'
+}
+
+<#
+    .Synopsis
+        Tests if a version is a Release Candidate
+    .EXAMPLE
+        Test-IsReleaseCandidate -version '6.1.0-sometthing' # returns false
+        Test-IsReleaseCandidate -version '6.1.0-rc.1' # returns true
+        Test-IsReleaseCandidate -version '6.1.0' # returns false
+#>
+function Test-IsReleaseCandidate
+{
+    param(
+        [parameter(Mandatory)]
+        [string]
+        $Version
+    )
+
+    if ($Version -like '*-rc.*')
+    {
+        return $true
+    }
+
+    return $false
 }
 
 function Start-PSBuild {
@@ -515,6 +539,7 @@ Fix steps:
     # ARM is cross compiled, so we can't run pwsh to enumerate Experimental Features
     if (-not $SkipExperimentalFeatureGeneration -and
         (Test-IsPreview $psVersion) -and
+        -not (Test-IsReleaseCandidate $psVersion) -and
         -not $Runtime.Contains("arm") -and
         -not ($Runtime -like 'fxdependent*')) {
 
