@@ -400,6 +400,26 @@ Describe "Additional tests for Import-Module with WinCompat" -Tag "CI" {
             Write-Verbose "Log = $($Log)" -Verbose
             $Log | Should -BeLike "*loaded in Windows PowerShell*"
         }
+
+        It "Verify that Error is Not generated with -ErrorAction Ignore" -Skip:(-not $IsWindows) {
+            $LogPath = Join-Path $TestDrive (New-Guid).ToString()
+            pwsh -NoProfile -NonInteractive -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Import-Module $ModuleName -ErrorAction Ignore" *> $LogPath
+
+            $Log = Get-Content $LogPath -Raw
+
+            Write-Verbose "Log = $($Log)" -Verbose
+            $Log | Should -Not -BeLike "*divide by zero*"
+        }
+
+        It "Verify that Warning is Not generated with -WarningAction Ignore" -Skip:(-not $IsWindows) {
+            $LogPath = Join-Path $TestDrive (New-Guid).ToString()
+            pwsh -NoProfile -NonInteractive -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Import-Module $ModuleName -WarningAction Ignore" *> $LogPath
+
+            $Log = Get-Content $LogPath -Raw
+
+            Write-Verbose "Log = $($Log)" -Verbose
+            $Log | Should -Not -BeLike "*loaded in Windows PowerShell*"
+        }
     }
 }
 <#
