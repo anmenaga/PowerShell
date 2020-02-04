@@ -412,7 +412,7 @@ Describe "Additional tests for Import-Module with WinCompat" -Tag "Feature" {
         $global:PSDefaultParameterValues = $originalDefaultParameterValues
     }
 
-    Context "Tests that ErrorAction/WarningAction have effect when Import-Module with WinCompat is used" {
+    <#Context "Tests that ErrorAction/WarningAction have effect when Import-Module with WinCompat is used" {
         BeforeAll {
             $pwsh = "$PSHOME/pwsh"
             Add-ModulePath $basePath
@@ -469,7 +469,7 @@ Describe "Additional tests for Import-Module with WinCompat" -Tag "Feature" {
             pwsh -NoProfile -NonInteractive -settingsFile $ConfigPath -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`'); Test-$ModuleName2" *> $LogPath
             $LogPath | Should -FileContentMatch 'True'
         }
-    }
+    }#>
 
     Context "Tests around Windows PowerShell Compatibility module deny list" {
         BeforeAll {
@@ -494,23 +494,20 @@ Describe "Additional tests for Import-Module with WinCompat" -Tag "Feature" {
 
         It "Blocks DenyList module import by Import-Module <ModuleName> -UseWindowsPowerShell" {
             '{"WindowsPowerShellCompatibilityModuleDenyList": ["' + $ModuleName2 + '"]}' | Out-File -Force $ConfigPath
-            $out = pwsh -NoProfile -NonInteractive -settingsFile $ConfigPath -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Import-Module $ModuleName2 -UseWindowsPowerShell;`$error[0].FullyQualifiedErrorId"
-            $out | Out-String | Write-Verbose -Verbose
-            $out[1] | Should -Match 'Modules_ModuleInWinCompatDenyList'
+            $out = pwsh -NoProfile -NonInteractive -settingsFile $ConfigPath -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Import-Module $ModuleName2 -UseWindowsPowerShell -ErrorVariable z -ErrorAction SilentlyContinue;`$z.FullyQualifiedErrorId"
+            $out | Should -BeExactly 'Modules_ModuleInWinCompatDenyList,Microsoft.PowerShell.Commands.ImportModuleCommand'
         }
 
         It "Blocks DenyList module import by Import-Module <ModuleName>" {
             '{"WindowsPowerShellCompatibilityModuleDenyList": ["' + $ModuleName2.ToLowerInvariant() + '"]}' | Out-File -Force $ConfigPath # also check case-insensitive comparison
-            $out = pwsh -NoProfile -NonInteractive -settingsFile $ConfigPath -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Import-Module $ModuleName2;`$error[0].FullyQualifiedErrorId"
-            $out | Out-String | Write-Verbose -Verbose
-            $out[1] | Should -Match 'Modules_ModuleInWinCompatDenyList'
+            $out = pwsh -NoProfile -NonInteractive -settingsFile $ConfigPath -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Import-Module $ModuleName2 -ErrorVariable z -ErrorAction SilentlyContinue;`$z.FullyQualifiedErrorId"
+            $out | Should -BeExactly 'Modules_ModuleInWinCompatDenyList,Microsoft.PowerShell.Commands.ImportModuleCommand'
         }
 
         It "Blocks DenyList module import by CommandDiscovery\ModuleAutoload" {
             '{"WindowsPowerShellCompatibilityModuleDenyList": ["RandomNameJustToMakeArrayOfSeveralModules","' + $ModuleName2 + '"]}' | Out-File -Force $ConfigPath
-            $out = pwsh -NoProfile -NonInteractive -settingsFile $ConfigPath -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Test-$ModuleName2;`$error[0].FullyQualifiedErrorId"
-            $out | Out-String | Write-Verbose -Verbose
-            $out[1] | Should -Match 'CouldNotAutoloadMatchingModule'
+            $out = pwsh -NoProfile -NonInteractive -settingsFile $ConfigPath -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');`$ErrorActionPreference = 'SilentlyContinue';Test-$ModuleName2;`$error[0].FullyQualifiedErrorId"
+            $out | Should -BeExactly 'CouldNotAutoloadMatchingModule'
         }
     }
 }
