@@ -130,7 +130,7 @@ function New-TestNestedModule
     # Create the manifest
     [scriptblock]::Create($newManifestCmd).Invoke()
 }
-
+<#
 Describe "Get-Module with CompatiblePSEditions-checked paths" -Tag "CI" {
 
     BeforeAll {
@@ -388,7 +388,7 @@ Describe "Import-Module from CompatiblePSEditions-checked paths" -Tag "CI" {
             & "Test-${ModuleName}PSEdition" | Should -Be 'Desktop'
         }
     }
-}
+}#>
 
 Describe "Additional tests for Import-Module with WinCompat" -Tag "Feature" {
 
@@ -495,23 +495,26 @@ Describe "Additional tests for Import-Module with WinCompat" -Tag "Feature" {
         It "Blocks DenyList module import by Import-Module <ModuleName> -UseWindowsPowerShell" {
             '{"WindowsPowerShellCompatibilityModuleDenyList": ["' + $ModuleName2 + '"]}' | Out-File -Force $ConfigPath
             $out = pwsh -NoProfile -NonInteractive -settingsFile $ConfigPath -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Import-Module $ModuleName2 -UseWindowsPowerShell;`$error[0].FullyQualifiedErrorId"
+            $out | Out-String | Write-Verbose -Verbose
             $out[1] | Should -Match 'Modules_ModuleInWinCompatDenyList'
         }
 
         It "Blocks DenyList module import by Import-Module <ModuleName>" {
             '{"WindowsPowerShellCompatibilityModuleDenyList": ["' + $ModuleName2.ToLowerInvariant() + '"]}' | Out-File -Force $ConfigPath # also check case-insensitive comparison
             $out = pwsh -NoProfile -NonInteractive -settingsFile $ConfigPath -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Import-Module $ModuleName2;`$error[0].FullyQualifiedErrorId"
+            $out | Out-String | Write-Verbose -Verbose
             $out[1] | Should -Match 'Modules_ModuleInWinCompatDenyList'
         }
 
         It "Blocks DenyList module import by CommandDiscovery\ModuleAutoload" {
             '{"WindowsPowerShellCompatibilityModuleDenyList": ["RandomNameJustToMakeArrayOfSeveralModules","' + $ModuleName2 + '"]}' | Out-File -Force $ConfigPath
             $out = pwsh -NoProfile -NonInteractive -settingsFile $ConfigPath -c "[System.Management.Automation.Internal.InternalTestHooks]::SetTestHook('TestWindowsPowerShellPSHomeLocation', `'$basePath`');Test-$ModuleName2;`$error[0].FullyQualifiedErrorId"
+            $out | Out-String | Write-Verbose -Verbose
             $out[1] | Should -Match 'CouldNotAutoloadMatchingModule'
         }
     }
 }
-
+<#
 Describe "PSModulePath changes interacting with other PowerShell processes" -Tag "Feature" {
     BeforeAll {
         $pwsh = "$PSHOME/pwsh"
@@ -1148,4 +1151,4 @@ Describe "Import-Module nested module behaviour with Edition checking" -Tag "Fea
             }
         }
     }
-}
+}#>
